@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "stop-ai-slop",
+  "owner": {
+    "name": "kirankunapuli",
+    "url": "https://github.com/kirankunapuli"
+  },
+  "metadata": {
+    "description": "Detect and remove AI-generated code slop.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "stop-ai-slop",
+      "description": "Detects and removes AI-generated slop from code and from the prose coding agents write, including commit messages, pull request descriptions, docs, and review replies. Finds speculative abstractions, redundant comments, defensive bloat, generic naming, hallucinated APIs and packages, plausible-but-wrong logic, weak tests, and filler prose, while preserving the codebase's conventions and the writer's voice.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/stop-ai-slop"
+      ]
+    }
+  ]
+}

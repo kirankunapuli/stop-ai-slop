@@ -1,0 +1,65 @@
+name: Stop AI Slop
+description: Review a pull request for AI-generated code slop using the stop-ai-slop agent skill.
+author: kirankunapuli
+branding:
+  icon: scissors
+  color: orange
+
+inputs:
+  api-key:
+    description: API key for the chosen provider. OpenAI is the default; any provider works.
+    required: true
+  github-token:
+    description: Token used to post the review comment. Needs pull-requests:write (or issues:write). Defaults to the workflow token.
+    required: false
+    default: ""
+  provider:
+    description: >-
+      openai, anthropic, groq, openrouter, together, deepseek, mistral, xai, google, ollama,
+      lmstudio, or custom (any OpenAI-compatible endpoint via base-url).
+    required: false
+    default: openai
+  model:
+    description: Model ID. Pick one the chosen provider serves.
+    required: false
+    default: gpt-6-luna
+  base-url:
+    description: Override the provider API base URL (for gateways, proxies, or self-hosted endpoints).
+    required: false
+    default: ""
+  fail-on-findings:
+    description: Fail the check when slop is found.
+    required: false
+    default: "false"
+  max-diff-chars:
+    description: Truncate the diff beyond this many characters.
+    required: false
+    default: "40000"
+
+outputs:
+  findings:
+    description: "true when the review reported at least one finding."
+    value: ${{ steps.review.outputs.findings }}
+  result:
+    description: The raw review text.
+    value: ${{ steps.review.outputs.result }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+    - name: Review the pull request
+      id: review
+      shell: bash
+      env:
+        INPUT_API_KEY: ${{ inputs.api-key }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github-token || github.token }}
+        INPUT_PROVIDER: ${{ inputs.provider }}
+        INPUT_MODEL: ${{ inputs.model }}
+        INPUT_BASE_URL: ${{ inputs.base-url }}
+        INPUT_FAIL_ON_FINDINGS: ${{ inputs.fail-on-findings }}
+        INPUT_MAX_DIFF_CHARS: ${{ inputs.max-diff-chars }}
+        SKILL_PATH: ${{ github.action_path }}/skills/stop-ai-slop/SKILL.md
+      run: node "${{ github.action_path }}/scripts/review.mjs"

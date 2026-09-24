@@ -1,0 +1,7 @@
+fix: Fixed the bug in the invoice processor where it was not correctly
+handling the amount parsing, which could cause issues. This is an
+important change that improves the robustness of the system and makes
+it more reliable going forward. I've also refactored some code to be
+more maintainable.
+
+Generated with Claude Code

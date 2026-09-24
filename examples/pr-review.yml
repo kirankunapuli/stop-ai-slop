@@ -1,0 +1,29 @@
+# Example: review every pull request for AI slop.
+# Copy to .github/workflows/stop-ai-slop.yml in your repo.
+#
+# OpenAI + gpt-6-luna are the defaults. Any provider works:
+#   provider: openai | groq | openrouter | together | deepseek | mistral | xai
+#             google | ollama | lmstudio | custom (+ base-url)
+# Defaults are openai + gpt-6-luna. Set model to one your provider serves.
+
+name: stop-ai-slop
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: kirankunapuli/stop-ai-slop@v1
+        with:
+          api-key: ${{ secrets.OPENAI_API_KEY }}
+          fail-on-findings: "false"
