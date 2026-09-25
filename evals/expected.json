@@ -7,6 +7,12 @@
     { "pattern": "dead code", "match": ["unused", "dead", "import"] },
     { "pattern": "unverified network call", "match": ["requests", "timeout", "network", "unverified"] }
   ],
+  "code/parse.py": [
+    { "pattern": "money as float", "match": ["float", "decimal", "money", "precision"] },
+    { "pattern": "sql injection", "match": ["sql", "f-string", "interpolat", "parameter", "injection"] },
+    { "pattern": "command injection", "match": ["shell", "subprocess", "injection", "command"] },
+    { "pattern": "naive datetime", "match": ["timezone", "naive", "utc", "datetime"] }
+  ],
   "prose/commit-msg.txt": [
     { "pattern": "past-tense subject", "match": ["past tense", "imperative", "fixed", "subject"] },
     { "pattern": "filler and buzzwords", "match": ["filler", "robust", "important", "going forward", "filler phrase"] },

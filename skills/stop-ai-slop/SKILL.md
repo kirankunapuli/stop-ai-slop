@@ -43,6 +43,12 @@ Highest severity. Read these before style.
 
 **Missing or weak trust-boundary checks.** No authorization on a new endpoint, validation only on the client, input trusted because it came from another internal service. Fix: validate and authorize once, at the boundary. Never remove these while de-slopping.
 
+**Injection through string building.** SQL assembled with f-strings or concatenation, shell commands run with `shell=True`, file paths joined from user input. The plausible version works on the happy path and executes whatever the input says. Fix: parameterized queries, argument arrays instead of a shell string, resolved real paths that stay inside the allowed root.
+
+**Money as float, naive datetimes.** Currency in `float`. Timestamps from `datetime.now()` with no timezone, or dates compared as strings. Fix: `Decimal` or integer minor units, timezone-aware UTC, ISO 8601.
+
+**Blocking calls inside async code.** `requests`, `time.sleep`, or a synchronous database driver called from an `async def`. This stalls the event loop under load. Fix: the async client, or move the call to a thread pool.
+
 **Secrets and sensitive data.** Hardcoded keys, tokens, or passwords. Secrets written to logs or errors. Fix: read from the environment or a secret store, and redact before logging.
 
 **Unguarded network behavior.** Retries that ignore `Retry-After` or run forever, hardcoded timeouts that miss the service SLA, calls with no timeout, missing rate-limit handling. Fix: bounded retries with backoff, a timeout, and explicit handling of the failure response.
@@ -129,6 +135,7 @@ Keep a banned word when it is the project's convention. Match, do not impose.
 - Any abstraction with one implementation? Inline it.
 - Any error swallowed or logged-and-rethrown? Fix it at the boundary.
 - Any API or dependency you have not verified? Open the installed source. Run it.
+- Any query, shell command, or path built from user input? Parameterize it.
 - Any file changed outside the task boundary? Revert it.
 - Any test edited to pass? Undo it, or explain the changed requirement.
 - Any behavior change not stated in the output? State it.

@@ -123,7 +123,7 @@ AI output has a specific failure mode: it reads like quality. Reviewers approve 
 
 Full catalog in [SKILL.md](skills/stop-ai-slop/SKILL.md). The groups:
 
-- **Wrong or unverified behavior.** Plausible-but-wrong logic, hallucinated APIs and packages, swallowed errors, missing trust-boundary checks, secrets in code, retries that ignore `Retry-After`, non-idempotent retries and race conditions, N+1 queries and unbounded result sets.
+- **Wrong or unverified behavior.** Plausible-but-wrong logic, hallucinated APIs and packages, swallowed errors, missing trust-boundary checks, secrets in code, string-built SQL and shell commands, money as float and naive datetimes, blocking calls in async code, retries that ignore `Retry-After`, non-idempotent retries and race conditions, N+1 queries and unbounded result sets.
 - **Structure that does not pay for itself.** One-implementation interfaces, single-product factories, reinvented standard library, god functions, shotgun diffs, architecture violations.
 - **Naming and comments.** Generic names, comments that restate the code, stale comments and docs.
 - **Excess and noise.** Defensive bloat, dead code, formatting churn.
@@ -244,7 +244,7 @@ The catalog follows Anthropic's [skill authoring guidance](https://platform.clau
 
 ## Evaluation
 
-A skill is a claim until it is measured. This repo ships a small benchmark: three labeled fixtures (two sloppy, one clean) and a harness that scores recall, precision, and false positives on the clean file.
+A skill is a claim until it is measured. This repo ships a small benchmark: four labeled fixtures (three sloppy, one clean) and a harness that scores recall, precision, and false positives on the clean file.
 
 ```bash
 EVAL_API_KEY=... node evals/run.mjs
@@ -252,8 +252,9 @@ EVAL_API_KEY=... node evals/run.mjs
 
 | Model | Recall | Precision | Findings on clean |
 |---|---|---|---|
-| `gpt-6-luna` (default) | 1.00 (10/10) | 0.91 | 0 |
-| `claude-haiku-4-5-20251001` | 1.00 (10/10) | 0.83 | 0 |
+| `claude-haiku-4-5-20251001` | 1.00 (14/14) | 0.82 | 0 |
+
+`gpt-6-luna` is the default. It scored 1.00 recall and 0.91 precision on the earlier three-fixture set and has not been re-measured on the expanded set.
 
 The harness fails when recall drops below the threshold or when the skill invents a finding on clean code. That second check matters most: a skill that invents problems is worse than one that misses a few. Method, limitations, and how to add a fixture: [evals/README.md](evals/README.md).
 
