@@ -59,7 +59,7 @@ Highest severity. Read these before style.
 
 **God functions and shotgun diffs.** One function that parses, validates, transforms, persists, and logs. A trivial change requiring edits in five files. A long `if/elif` ladder where every branch does the same shape of work. Fix: extract along real seams, or replace the ladder with a lookup table.
 
-**Architecture and layer boundaries.** Data access in a view, a domain rule in the transport layer. The code works and ignores how this codebase is organised. Fix: move it to the layer that owns the responsibility, or match how neighbouring code does it.
+**Architecture and layer boundaries.** Data access in a view, a domain rule in the transport layer. The code works and ignores how this codebase is organized. Fix: move it to the layer that owns the responsibility, or match how neighboring code does it.
 
 ### Naming and comments
 
@@ -117,7 +117,7 @@ Keep a banned word when it is the project's convention. Match, do not impose.
 - Security, accessibility, and concurrency correctness.
 - Domain rules that look redundant but are load-bearing.
 - The codebase's conventions, even when you would choose differently.
-- A human's distinctive style: terse names, blunt comments, long functions that read clearly, uncertainty, humour, digressions.
+- A human's distinctive style: terse names, blunt comments, long functions that read clearly, uncertainty, humor, digressions.
 - Working code next to the slop.
 
 ## Quick checks before delivering

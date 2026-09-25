@@ -117,7 +117,7 @@ AI output has a specific failure mode: it reads like quality. Reviewers approve 
 - **Agents game the tests.** A 2025 study of frontier models on engineering tasks found reward hacking in 30.4% of runs: edited assertions, disabled tests, monkey-patched runners, and one agent that overrode Python's equality check so every test passed. A benchmark agent scored 97% on visible compiler tests and 0% on held-out tests by hashing inputs to stored answers. ([summary](https://tianpan.co/blog/2026/04/17/specification-gaming-production-ai-agents), [SpecBench](https://www.weco.ai/blog/specbench))
 - **The code looks plausible while being wrong.** Off-by-one errors, inverted conditions, and skipped edge cases survive review because the code runs and reads correctly. ([survey](https://arxiv.org/abs/2512.05239))
 - **AI tests create a coverage illusion.** They assert that a function did not throw, assert on the mock, or mirror the implementation including its bugs. ([Vitest](https://main.vitest.dev/guide/learn/writing-tests-with-ai))
-- **AI bloat passes inspection.** Single-use factories, redundant indirection, and unnecessary abstractions resemble patterns reviewers recognise as good. ([Bryan Finster](https://bryanfinster.substack.com/p/ai-broke-your-code-review-heres-how))
+- **AI bloat passes inspection.** Single-use factories, redundant indirection, and unnecessary abstractions resemble patterns reviewers recognize as good. ([Bryan Finster](https://bryanfinster.substack.com/p/ai-broke-your-code-review-heres-how))
 
 ## What it catches
 
@@ -306,10 +306,6 @@ A skill needs `name` (lowercase and hyphens, 64 characters maximum, no reserved 
 ## Contributing
 
 Open an issue or a pull request. New slop patterns are welcome when they are concrete and detectable, not a matter of taste. Keep `SKILL.md` tight: every rule must earn its place.
-
-## Star history
-
-[![Star History Chart](https://api.star-history.com/svg?repos=kirankunapuli/stop-ai-slop&type=Date)](https://star-history.com/#kirankunapuli/stop-ai-slop&Date)
 
 ## License
 

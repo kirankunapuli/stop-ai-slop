@@ -60,3 +60,5 @@ jobs:
           JS
       - name: Lint markdown
         run: npx --yes markdownlint-cli2 "*.md" "docs/*.md" "demo/*.md" "evals/*.md" "skills/**/*.md" "examples/*.md"
+      - name: Validate action manifest
+        run: npx --yes js-yaml action.yml > /dev/null

@@ -116,5 +116,9 @@ function parseFindings(answer) {
 
 function includesAny(line, keys) {
   const lower = line.toLowerCase();
-  return keys.some((key) => lower.includes(key.toLowerCase()));
+  return keys.some((key) => new RegExp(`\\b${escapeRegex(key.toLowerCase())}\\b`).test(lower));
+}
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

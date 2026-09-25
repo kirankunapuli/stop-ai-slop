@@ -34,7 +34,7 @@ use over leverage, utilize, facilitate, or empower. build over architect. help o
 
 ## Preserve the writer's voice
 
-Keep real uncertainty, humour, bluntness, self-interruption, and digressions. Fix the AI patterns. Do not smooth distinctive writing into generic polish.
+Keep real uncertainty, humor, bluntness, self-interruption, and digressions. Fix the AI patterns. Do not smooth distinctive writing into generic polish.
 
 ## Commit messages
 

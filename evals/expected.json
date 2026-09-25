@@ -3,7 +3,7 @@
     { "pattern": "speculative abstraction", "match": ["interface", "abstract", "factory"] },
     { "pattern": "redundant comments", "match": ["comment", "docstring", "restating", "restates", "banner"] },
     { "pattern": "swallowed errors", "match": ["except", "swallow", "amount to 0", "return none", "propagate"] },
-    { "pattern": "generic naming", "match": ["data", "result", "item", "handle"] },
+    { "pattern": "generic naming", "match": ["data", "result", "item", "items", "handle"] },
     { "pattern": "dead code", "match": ["unused", "dead", "import"] },
     { "pattern": "unverified network call", "match": ["requests", "timeout", "network", "unverified"] }
   ],
@@ -11,7 +11,7 @@
     { "pattern": "past-tense subject", "match": ["past tense", "imperative", "fixed", "subject"] },
     { "pattern": "filler and buzzwords", "match": ["filler", "robust", "important", "going forward", "filler phrase"] },
     { "pattern": "tool footer", "match": ["generated with", "footer", "attribution", "tool"] },
-    { "pattern": "narration", "match": ["narrat", "refactor", "maintainable", "what"] }
+    { "pattern": "narration", "match": ["narrat", "refactor", "maintainable"] }
   ],
   "clean/format.py": []
 }

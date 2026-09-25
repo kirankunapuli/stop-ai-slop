@@ -28,7 +28,7 @@ function fail(message) {
 }
 
 function setOutput(name, value) {
-  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `${name}<<EOF\n${value}\nEOF\n`);
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `${name}<<EOF_${name}\n${value}\nEOF_${name}\n`);
 }
 
 function getDiff(maxChars) {
