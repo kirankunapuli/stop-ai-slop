@@ -12,11 +12,12 @@ Repositories and authors are not named. The goal is to measure the skill, not to
 
 ## Results
 
-| Pull request | Findings, first prompt | Correct | Findings, strict prompt | Correct |
-|---|--:|--:|--:|--:|
-| TypeScript type and lint cleanup | 5 | 1 | 3 | 1 |
-| Rust CLI map key change | 5 | 0 | 3 | 0 |
-| C# signature validation | 3 | 0 | 0 (NO_SLOP) | 0 |
+| Pull request | First pass | After the fix |
+|---|--:|--:|
+| TypeScript type and lint cleanup | 5 findings, 1 correct | 3 findings, 1 correct |
+| Rust CLI map key change | 5 findings, 0 correct | `NO_SLOP` |
+| C# signature validation | 3 findings, 0 correct | `NO_SLOP` |
+| **Total wrong findings** | **12** | **2** |
 
 ## What it got wrong
 
@@ -26,21 +27,33 @@ The TypeScript pull request added `isRecord` checks around `JSON.parse` output. 
 
 The second failure mode: **speculative findings.** The Rust pull request produced lines like "verify the key type matches usage" and "confirm the equality and hashing behavior". These are questions, not defects. One went further and claimed the code would not compile, which the type system would have caught long before review.
 
-The third: **the model can argue itself into a false positive and then a true negative in the same response.** On the C# pull request it produced a long internal retrace, concluded its own finding was wrong, and on the next run with a stricter prompt returned `NO_SLOP` for the whole diff. Correct output, arrived at by accident.
+## What was changed
 
-## What changed
+Four changes, all in this repo.
 
-Two edits, both shipped in this repo.
+1. **The diff was sent with no statement of intent.** The action now passes the pull request title and body, from the event payload, so the model knows what the change was for. Reviewing a diff without the requirement is guessing.
+2. **A second pass filters the findings.** After detection, the same model runs once more with a narrow instruction: remove findings that are questions, guesses about code not shown, or complaints about runtime checks on data crossing a trust boundary. Nothing else is allowed to be dropped. Verifier output is then reduced to finding-shaped lines, so reasoning text never reaches the pull request comment.
+3. **`SKILL.md` names the boundaries.** Runtime checks on file contents, network responses, `JSON.parse` output, environment variables, CLI arguments, and request bodies are stated as correct code, and the prompt repeats it.
+4. **The eval and the action now share one prompt.** They had drifted apart, which is why a 1.00 recall number described a prompt the action did not use. `scripts/prompt.mjs` is the single source for both.
 
-1. `SKILL.md` now states that runtime checks on data crossing a trust boundary are not bloat, and names the boundaries: file contents, network responses, `JSON.parse` output, environment variables, CLI arguments, request bodies.
-2. The action prompt is stricter. It asks for at most five findings, forbids questions and `verify` or `confirm` phrasing, and requires a defect that can be pointed at in the diff. If there is none, it must answer `NO_SLOP`.
+A new fixture guards the failure: `evals/fixtures/refactor/guards.ts` is correct boundary-validation code with an expected finding count of zero.
 
-Result of the strict prompt: the C# pull request went from three wrong findings to `NO_SLOP`. The other two dropped from five findings to three, still mostly wrong.
+## Result after the fix
+
+Same three pull requests, same model, same detect-only behaviour.
+
+| Metric | Before | After |
+|---|--:|--:|
+| Wrong findings on the three PRs | 12 | 2 |
+| Pull requests correctly returned clean | 0 of 3 | 2 of 3 |
+| Eval recall on labeled fixtures | 1.00 (14/14) | 0.86 (12/14) |
+| Eval precision | 0.82 | 0.92 |
+| Findings on the clean fixtures | 0 | 0 |
+
+Recall moved down because the second pass removes some legitimate complaints about comments and naming. That is a deliberate trade: on real code the skill was wrong more often than right, and a reviewer who gets wrong findings turns the tool off.
 
 ## Honest conclusion
 
-The skill is strong on the code it was built and measured against, and weak on real refactor and type-only pull requests. Two of three real pull requests produced more wrong findings than right ones.
+The skill is now usable on real agent pull requests instead of only on the code it was built against. It is not precise yet. Two wrong findings out of three on a type-and-lint cleanup is still too many for a review gate that fails the build.
 
-A skill that reports wrong findings on clean-looking code gets turned off, and then the real ones stop being seen. That is the risk that matters, and this study shows it is live.
-
-The next fixture to add is not another sloppy file. It is a real refactor pull request with zero expected findings, so the harness measures this failure directly instead of leaving it to a case study.
+The next fixture to add is another real refactor pull request with zero expected findings. Every time a wrong finding appears on real code, it becomes a fixture, and the harness keeps it from coming back.

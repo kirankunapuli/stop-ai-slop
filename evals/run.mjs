@@ -13,6 +13,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { callModel } from "../scripts/model.mjs";
+import { buildDetectPrompt, buildVerifyPrompt, extractFindings } from "../scripts/prompt.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "..");
@@ -26,7 +27,13 @@ const baseUrl = process.env.EVAL_BASE_URL || "";
 const apiKey = process.env.EVAL_API_KEY || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || "";
 const minRecall = Number(process.env.EVAL_MIN_RECALL || "0.75");
 
-const expected = JSON.parse(readFileSync(join(here, "expected.json"), "utf8"));
+let expected;
+try {
+  expected = JSON.parse(readFileSync(join(here, "expected.json"), "utf8"));
+} catch (error) {
+  console.error(`evals/expected.json is not valid JSON: ${error.message}`);
+  process.exit(1);
+}
 const skill = readFileSync(join(repoRoot, "skills", "stop-ai-slop", "SKILL.md"), "utf8");
 
 const plan = Object.entries(expected);
@@ -56,26 +63,18 @@ async function run(plan) {
   for (const [file, patterns] of plan) {
     const path = join(here, "fixtures", file);
     const content = readFileSync(path, "utf8");
-    const prompt = [
-      "Detect all slop in the file below. Detect only, do not rewrite.",
-      "List every finding as one line: `path:line: problem. fix.`",
-      "If there is no slop, reply with exactly: NO_SLOP",
-      "",
-      `FILE: ${file}`,
-      "```",
-      content,
-      "```",
-    ].join("\n");
-
-    const answer = await callModel({ provider, baseUrl, apiKey, model, system: skill, prompt });
-    const findings = parseFindings(answer);
+    const answer = await callModel({ provider, baseUrl, apiKey, model, system: skill, prompt: buildDetectPrompt({ diff: content, title: file }) });
+    const raw = answer.trim() === "NO_SLOP"
+      ? answer
+      : await callModel({ provider, baseUrl, apiKey, model, system: skill, prompt: buildVerifyPrompt({ diff: content, findings: answer }) });
+    const findings = extractFindings(raw);
     const matched = patterns.filter((p) => findings.some((f) => includesAny(f, p.match)));
     const falsePositives = findings.filter((f) => !patterns.some((p) => includesAny(f, p.match)));
 
     totalExpected += patterns.length;
     totalHits += matched.length;
-    totalFalsePositives += patterns.length === 0 ? 0 : falsePositives.length;
-    if (patterns.length === 0) cleanFindings = findings.length;
+    totalFalsePositives += patterns.length === 0 ? findings.length : falsePositives.length;
+    if (patterns.length === 0) cleanFindings += findings.length;
 
     const recall = patterns.length ? (matched.length / patterns.length).toFixed(2) : "n/a";
     console.log(`${file}`);
@@ -103,15 +102,6 @@ async function run(plan) {
     failed = true;
   }
   return failed ? 1 : 0;
-}
-
-function parseFindings(answer) {
-  return answer
-    .split("\n")
-    .map((line) => line.trim().replace(/^[-*]\s+/, "").trim())
-    .filter((line) => line && line !== "NO_SLOP" && !/^[`~]{1,}$/.test(line) && !/^```/.test(line))
-    .map((line) => line.replace(/^`|`$/g, "").trim())
-    .filter(Boolean);
 }
 
 function includesAny(line, keys) {

@@ -19,5 +19,6 @@
     { "pattern": "tool footer", "match": ["generated with", "footer", "attribution", "tool"] },
     { "pattern": "narration", "match": ["narrat", "refactor", "maintainable"] }
   ],
-  "clean/format.py": []
+  "clean/format.py": [],
+  "refactor/guards.ts": []
 }

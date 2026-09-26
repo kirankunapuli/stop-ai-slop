@@ -244,7 +244,7 @@ The catalog follows Anthropic's [skill authoring guidance](https://platform.clau
 
 ## Evaluation
 
-A skill is a claim until it is measured. This repo ships a small benchmark: four labeled fixtures (three sloppy, one clean) and a harness that scores recall, precision, and false positives on the clean file.
+A skill is a claim until it is measured. This repo ships a small benchmark: five labeled fixtures (three sloppy, two clean) and a harness that scores recall, precision, and false positives on the clean files.
 
 ```bash
 EVAL_API_KEY=... node evals/run.mjs
@@ -252,9 +252,11 @@ EVAL_API_KEY=... node evals/run.mjs
 
 | Model | Recall | Precision | Findings on clean |
 |---|---|---|---|
-| `claude-haiku-4-5-20251001` | 1.00 (14/14) | 0.82 | 0 |
+| `claude-haiku-4-5-20251001` | 0.86 (12/14) | 0.92 | 0 |
 
-`gpt-6-luna` is the default. It scored 1.00 recall and 0.91 precision on the earlier three-fixture set and has not been re-measured on the expanded set.
+The action runs twice: a first pass finds defects, a second pass removes questions, guesses, and boundary-validation complaints. The eval runs the same two passes, from the same prompt file, so the number describes what the action actually sends.
+
+`gpt-6-luna` is the default. Its last measurement, on the earlier three-fixture set, was 1.00 recall and 0.91 precision.
 
 The harness fails when recall drops below the threshold or when the skill invents a finding on clean code. That second check matters most: a skill that invents problems is worse than one that misses a few. Method, limitations, and how to add a fixture: [evals/README.md](evals/README.md).
 
@@ -272,6 +274,7 @@ Measured on code it did not influence: [docs/case-study.md](docs/case-study.md) 
 ├── action.yml                # composite GitHub Action
 ├── scripts/
 │   ├── review.mjs            # PR review runner, no dependencies
+│   ├── prompt.mjs            # detect and verify prompts, shared with the eval
 │   └── model.mjs             # shared provider calls
 ├── evals/                    # labeled fixtures and scoring harness
 │   ├── README.md

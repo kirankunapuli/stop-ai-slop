@@ -21,7 +21,7 @@ Exit code is non-zero when recall drops below the threshold, or when the skill r
 
 ## What it measures
 
-Three fixtures in `evals/fixtures/` are sloppy, one is clean. Labels live in `evals/expected.json`:
+Three fixtures in `evals/fixtures/` are sloppy, two are clean. Labels live in `evals/expected.json`:
 
 | Fixture | Labeled findings | Purpose |
 |---|---|---|
@@ -29,6 +29,9 @@ Three fixtures in `evals/fixtures/` are sloppy, one is clean. Labels live in `ev
 | `code/parse.py` | 4 | Money as float, string-built SQL, `shell=True`, naive datetime |
 | `prose/commit-msg.txt` | 4 | Past-tense subject, filler, tool footer, narration |
 | `clean/format.py` | 0 | False positives: any finding here is a miss |
+| `refactor/guards.ts` | 0 | Correct boundary validation. Guards the failure found in the case study |
+
+The harness runs the same two passes as the action, imported from `scripts/prompt.mjs`: detect, then filter questions, guesses, and boundary-validation complaints.
 
 The harness loads `SKILL.md` as the system prompt, asks the model to detect only, and matches each returned finding against the label keywords. A label counts as found when at least one line mentions it. Lines that match no label count as extra.
 
@@ -40,19 +43,19 @@ Measured on the fixtures above, one run each:
 
 | Model | Recall | Precision | Findings on clean | Verdict |
 |---|---|---|---|---|
-| `claude-haiku-4-5-20251001` | 1.00 (14/14) | 0.82 | 0 | Pass |
+| `claude-haiku-4-5-20251001` | 0.86 (12/14) | 0.92 | 0 | Pass |
 
-`gpt-6-luna` is the default. It scored 1.00 recall and 0.91 precision on the earlier three-fixture set and has not been re-measured on the expanded set.
+`gpt-6-luna` is the default. Its last measurement, on the earlier three-fixture set, was 1.00 recall and 0.91 precision.
 
-The three extra findings from Haiku are legitimate slop outside the labeled set (a string-built URL, a one-product factory, and a vague hedge), which is why precision stops at 0.82.
+Recall dropped from 1.00 when the verification pass was added, because it also removes some legitimate comments-and-naming findings. Precision rose from 0.82 to 0.92, and the two clean fixtures stay at zero.
 
 Model, harness, and prompt all affect the result. Re-run after changing `SKILL.md`.
 
 ## Limitations
 
 - **Keyword scoring is a floor, not a grade.** A correct finding phrased with different words can be scored as a miss, and a vague line that happens to contain a keyword can be scored as a hit. The fixtures are small on purpose; read the raw findings, not only the number.
-- **One fixture per domain.** Three sloppy files and one clean file test the core, not the whole catalog.
-- **Non-deterministic.** A single run per model. Run it several times before drawing conclusions.
+- **One fixture per domain.** Three sloppy files and two clean files test the core, not the whole catalog. The `refactor/guards.ts` fixture exists because the case study found the skill flagging correct boundary validation.
+- **Single run per model.** Recall varies a few points between runs. Run it more than once before drawing conclusions.
 - **Bias risk.** The fixtures were written alongside the catalog, so they share its vocabulary. Prefer adding fixtures from real code that predates the skill.
 
 ## Add a fixture
