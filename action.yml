@@ -1,5 +1,7 @@
 name: Stop AI Slop
-description: Review a pull request for AI-generated code slop using the stop-ai-slop agent skill.
+description: >-
+  Review a pull request for AI-generated code slop using the stop-ai-slop
+  agent skill.
 author: kirankunapuli
 branding:
   icon: scissors
@@ -7,16 +9,21 @@ branding:
 
 inputs:
   api-key:
-    description: API key for the chosen provider. OpenAI is the default; any provider works.
+    description: >-
+      API key for the chosen provider. OpenAI is the default; any provider
+      works.
     required: true
   github-token:
-    description: Token used to post the review comment. Needs pull-requests:write (or issues:write). Defaults to the workflow token.
+    description: >-
+      Token used to post the review comment. Needs pull-requests:write, or
+      issues:write. Defaults to the workflow token.
     required: false
     default: ""
   provider:
     description: >-
-      openai, anthropic, groq, openrouter, together, deepseek, mistral, xai, google, ollama,
-      lmstudio, or custom (any OpenAI-compatible endpoint via base-url).
+      openai, anthropic, groq, openrouter, together, deepseek, mistral, xai,
+      google, ollama, lmstudio, or custom with a base-url for any
+      OpenAI-compatible endpoint.
     required: false
     default: openai
   model:
@@ -24,7 +31,9 @@ inputs:
     required: false
     default: gpt-6-luna
   base-url:
-    description: Override the provider API base URL (for gateways, proxies, or self-hosted endpoints).
+    description: >-
+      Override the provider API base URL for gateways, proxies, or
+      self-hosted endpoints.
     required: false
     default: ""
   fail-on-findings:
@@ -47,7 +56,7 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
       with:
         node-version: 20
     - name: Review the pull request

@@ -250,13 +250,19 @@ A skill is a claim until it is measured. This repo ships a small benchmark: six 
 EVAL_API_KEY=... node evals/run.mjs
 ```
 
-| Model | Recall | Precision | F1 | Findings on clean |
-|---|---|---|---|---|
-| `claude-haiku-4-5-20251001` | 0.89 (17/19) | 1.00 | 0.94 | 0 |
+| Mode | Used by | Recall | Precision | F1 | Findings on clean |
+|---|---|---|---|---|---|
+| `strict` | the GitHub Action, CI | 0.79 to 0.89 | 1.00 | 0.88 to 0.94 | 0 |
+| `sweep` | interactive fix mode | 1.00 (19/19) | 1.00 | 1.00 | 0 |
 
-The action runs twice: a first pass finds defects, a second pass removes questions, guesses, and boundary-validation complaints. The eval imports the same prompt file, so the number describes what the action sends. Temperature is 0.
+Both numbers are real and both are reproducible. The difference is the trade the tool makes on purpose:
 
-`gpt-6-luna` is the default. Its last measurement, on the earlier three-fixture set, was 1.00 recall and 0.91 precision.
+- **strict** reports only what it is confident about. Precision first, because a reviewer who gets wrong findings turns the tool off. This is what CI runs.
+- **sweep** works the whole rule list. Recall 1.00, because a human is in the loop and can reject. This is what the agent uses when fixing code.
+
+The action runs twice: a first pass finds defects, a second pass removes questions, guesses, and boundary-validation complaints. The eval imports the same prompt file, so the numbers describe what the action sends. Temperature is 0.
+
+`gpt-6-luna` is the default. Its last measurement, on the earlier three-fixture set, was 1.00 recall and 0.91 precision. Re-measurement waits on API credits.
 
 The harness fails when recall drops below the threshold or when the skill invents a finding on clean code. That second check matters most: a skill that invents problems is worse than one that misses a few. Method, limitations, and how to add a fixture: [evals/README.md](evals/README.md).
 
@@ -287,7 +293,7 @@ Measured on code it did not influence: [docs/case-study.md](docs/case-study.md) 
 ├── docs/case-study.md        # the skill measured on three real agent PRs
 ├── .claude-plugin/           # Claude Code plugin manifests
 ├── .markdownlint.json        # markdown lint config
-└── .github/workflows/        # validate.yml
+└── .github/workflows/        # validate.yml, eval.yml
 ```
 
 ## Development

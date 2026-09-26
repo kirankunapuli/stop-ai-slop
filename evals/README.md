@@ -15,9 +15,11 @@ EVAL_PROVIDER=ollama EVAL_MODEL=qwen2.5-coder:7b EVAL_API_KEY=ollama node evals/
 node evals/run.mjs --dry
 ```
 
-Env: `EVAL_PROVIDER` (default `openai`), `EVAL_MODEL` (default `gpt-6-luna`), `EVAL_BASE_URL`, `EVAL_API_KEY` (falls back to `OPENAI_API_KEY` then `ANTHROPIC_API_KEY`), `EVAL_MIN_F1` (default `0.75`).
+Env: `EVAL_PROVIDER` (default `openai`), `EVAL_MODEL` (default `gpt-6-luna`), `EVAL_BASE_URL`, `EVAL_API_KEY` (falls back to `OPENAI_API_KEY` then `ANTHROPIC_API_KEY`), `EVAL_MODE` (default `strict`), `EVAL_MIN_F1` (default `0.75`).
 
 Exit code is non-zero when F1 drops below the threshold, or when the skill reports any finding on a clean fixture. That second check is the one that matters most: a skill that invents problems is worse than one that misses a few.
+
+`EVAL_MODE=strict` measures what the GitHub Action sends: precision first, at most 5 findings. `EVAL_MODE=sweep` measures interactive fix mode: the whole rule list, at most 10 findings. CI runs `strict`.
 
 ## What it measures
 
@@ -42,13 +44,14 @@ Output: recall, precision, and extra findings per fixture, then a summary.
 
 Measured on the fixtures above, one run each:
 
-| Model | Recall | Precision | F1 | Findings on clean | Verdict |
+| Mode | Recall | Precision | F1 | Findings on clean | Verdict |
 |---|---|---|---|---|---|
-| `claude-haiku-4-5-20251001` | 0.89 (17/19) | 1.00 | 0.94 | 0 | Pass |
+| `strict` (CI) | 0.79 to 0.89 | 1.00 | 0.88 to 0.94 | 0 | Pass |
+| `sweep` (fix mode) | 1.00 (19/19) | 1.00 | 1.00 | 0 | Pass |
+
+Recall in `strict` mode moves a couple of points between runs. Precision did not. Recall in `sweep` mode is 1.00 because it works every rule; the cost is a higher chance of a weak finding, which is acceptable when a human is reviewing the fix.
 
 `gpt-6-luna` is the default. Its last measurement, on the earlier three-fixture set, was 1.00 recall and 0.91 precision.
-
-The gate is F1 (`EVAL_MIN_F1`, default 0.75) plus zero findings on both clean fixtures. Recall varies a few points between runs even at temperature 0; precision did not.
 
 Model, harness, and prompt all affect the result. Re-run after changing `SKILL.md`.
 

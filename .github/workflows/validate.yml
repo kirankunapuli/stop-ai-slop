@@ -8,8 +8,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 20
       - name: Validate skill frontmatter and manifests
@@ -18,37 +18,65 @@ jobs:
           const fs = require("fs");
           const path = require("path");
 
-          const fail = (msg) => { console.error("FAIL: " + msg); process.exitCode = 1; };
+          const fail = (msg) => {
+            console.error("FAIL: " + msg);
+            process.exitCode = 1;
+          };
 
           // 1. Every skills/*/SKILL.md has valid frontmatter.
           const skillsRoot = "skills";
           for (const name of fs.readdirSync(skillsRoot)) {
             const file = path.join(skillsRoot, name, "SKILL.md");
-            if (!fs.existsSync(file)) { fail(`${file} missing`); continue; }
+            if (!fs.existsSync(file)) {
+              fail(`${file} missing`);
+              continue;
+            }
             const text = fs.readFileSync(file, "utf8");
             const m = text.match(/^---\n([\s\S]*?)\n---\n/);
-            if (!m) { fail(`${file} has no frontmatter`); continue; }
+            if (!m) {
+              fail(`${file} has no frontmatter`);
+              continue;
+            }
             const fm = m[1];
-            const field = (key) => (fm.match(new RegExp(`^${key}:\\s*(.+)$`, "m")) || [])[1];
+            const field = (key) =>
+              (fm.match(new RegExp(`^${key}:\\s*(.+)$`, "m")) || [])[1];
             const skillName = field("name");
             const desc = field("description");
             if (!skillName) fail(`${file} missing name`);
             if (!desc) fail(`${file} missing description`);
-            if (skillName && skillName !== name) fail(`${file} name "${skillName}" != dir "${name}"`);
-            if (skillName && !/^[a-z0-9-]+$/.test(skillName)) fail(`${file} name must be lowercase-hyphen`);
-            if (desc && desc.length > 1024) fail(`${file} description too long`);
+            if (skillName && skillName !== name) {
+              fail(`${file} name "${skillName}" is not the dir "${name}"`);
+            }
+            if (skillName && !/^[a-z0-9-]+$/.test(skillName)) {
+              fail(`${file} name must be lowercase-hyphen`);
+            }
+            if (desc && desc.length > 1024) {
+              fail(`${file} description too long`);
+            }
             console.log(`ok: ${name}`);
           }
 
-          // 2. Claude Code manifests parse and point at the skill.
-          for (const manifest of [".claude-plugin/marketplace.json", ".claude-plugin/plugin.json"]) {
-            if (!fs.existsSync(manifest)) { fail(`${manifest} missing`); continue; }
-            try { JSON.parse(fs.readFileSync(manifest, "utf8")); } catch (e) { fail(`${manifest} invalid JSON: ${e.message}`); }
+          // 2. Claude Code manifests parse.
+          const manifests = [
+            ".claude-plugin/marketplace.json",
+            ".claude-plugin/plugin.json",
+          ];
+          for (const manifest of manifests) {
+            if (!fs.existsSync(manifest)) {
+              fail(`${manifest} missing`);
+              continue;
+            }
+            try {
+              JSON.parse(fs.readFileSync(manifest, "utf8"));
+            } catch (e) {
+              fail(`${manifest} invalid JSON: ${e.message}`);
+            }
           }
 
           // 3. Every eval fixture referenced in expected.json exists.
           try {
-            const expected = JSON.parse(fs.readFileSync("evals/expected.json", "utf8"));
+            const raw = fs.readFileSync("evals/expected.json", "utf8");
+            const expected = JSON.parse(raw);
             for (const file of Object.keys(expected)) {
               const fixture = path.join("evals/fixtures", file);
               if (!fs.existsSync(fixture)) fail(`${fixture} missing`);
@@ -59,6 +87,13 @@ jobs:
           }
           JS
       - name: Lint markdown
-        run: npx --yes markdownlint-cli2 "*.md" "docs/*.md" "demo/*.md" "evals/*.md" "skills/**/*.md" "examples/*.md"
+        run: |
+          npx --yes markdownlint-cli2 \
+            "*.md" "docs/*.md" "demo/*.md" \
+            "evals/*.md" "skills/**/*.md" "examples/*.md"
       - name: Validate action manifest
         run: npx --yes js-yaml action.yml > /dev/null
+      - name: Validate workflow manifests
+        run: |
+          npx --yes js-yaml .github/workflows/validate.yml > /dev/null
+          npx --yes js-yaml .github/workflows/eval.yml > /dev/null

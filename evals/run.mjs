@@ -26,6 +26,7 @@ const model = process.env.EVAL_MODEL || "gpt-6-luna";
 const baseUrl = process.env.EVAL_BASE_URL || "";
 const apiKey = process.env.EVAL_API_KEY || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || "";
 const minF1 = Number(process.env.EVAL_MIN_F1 || "0.75");
+const mode = process.env.EVAL_MODE || "strict";
 
 let expected;
 try {
@@ -51,7 +52,7 @@ if (!apiKey) {
   process.exit(2);
 }
 
-console.log(`stop-ai-slop eval | provider=${provider} model=${model} fixtures=${plan.length}\n`);
+console.log(`stop-ai-slop eval | provider=${provider} model=${model} mode=${mode} fixtures=${plan.length}\n`);
 process.exit(await run(plan));
 
 async function run(plan) {
@@ -63,7 +64,7 @@ async function run(plan) {
   for (const [file, patterns] of plan) {
     const path = join(here, "fixtures", file);
     const content = readFileSync(path, "utf8");
-    const answer = await callModel({ provider, baseUrl, apiKey, model, system: skill, prompt: buildDetectPrompt({ diff: content, title: file }) });
+    const answer = await callModel({ provider, baseUrl, apiKey, model, system: skill, prompt: buildDetectPrompt({ diff: content, title: file, mode }) });
     const raw = answer.trim() === "NO_SLOP"
       ? answer
       : await callModel({ provider, baseUrl, apiKey, model, system: skill, prompt: buildVerifyPrompt({ diff: content, findings: answer }) });
