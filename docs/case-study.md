@@ -36,7 +36,9 @@ Four changes, all in this repo.
 3. **`SKILL.md` names the boundaries.** Runtime checks on file contents, network responses, `JSON.parse` output, environment variables, CLI arguments, and request bodies are stated as correct code, and the prompt repeats it.
 4. **The eval and the action now share one prompt.** They had drifted apart, which is why a 1.00 recall number described a prompt the action did not use. `scripts/prompt.mjs` is the single source for both.
 
-A new fixture guards the failure: `evals/fixtures/refactor/guards.ts` is correct boundary-validation code with an expected finding count of zero.
+A new fixture guards the failure: `evals/fixtures/refactor/guards.ts.txt` is correct boundary-validation code with an expected finding count of zero.
+
+Rules were then split by what a reviewer can actually see. Group 1 is visible in a diff. Group 2 needs the repository: hallucinated packages, missing authorization, N+1 queries, reinvented helpers, god functions, layer violations, stale comments. Group 3 is the agent's own process and never appears in a diff. Report-only mode applies group 1 and skips the rest, which removes the largest source of guesses.
 
 ## Result after the fix
 
@@ -46,11 +48,12 @@ Same three pull requests, same model, same detect-only behaviour.
 |---|--:|--:|
 | Wrong findings on the three PRs | 12 | 2 |
 | Pull requests correctly returned clean | 0 of 3 | 2 of 3 |
-| Eval recall on labeled fixtures | 1.00 (14/14) | 0.86 (12/14) |
-| Eval precision | 0.82 | 0.92 |
+| Eval recall on labeled fixtures | 1.00 (14/14) | 0.89 (17/19) |
+| Eval precision | 0.82 | 1.00 |
+| Eval F1 | 0.90 | 0.94 |
 | Findings on the clean fixtures | 0 | 0 |
 
-Recall moved down because the second pass removes some legitimate complaints about comments and naming. That is a deliberate trade: on real code the skill was wrong more often than right, and a reviewer who gets wrong findings turns the tool off.
+Recall is below 1.00 because the second pass also removes some legitimate comments-and-naming findings. That is a deliberate trade: on real code the skill was wrong more often than right, and a reviewer who gets wrong findings turns the tool off.
 
 ## Honest conclusion
 

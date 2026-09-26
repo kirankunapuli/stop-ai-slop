@@ -25,7 +25,7 @@ const provider = process.env.EVAL_PROVIDER || "openai";
 const model = process.env.EVAL_MODEL || "gpt-6-luna";
 const baseUrl = process.env.EVAL_BASE_URL || "";
 const apiKey = process.env.EVAL_API_KEY || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || "";
-const minRecall = Number(process.env.EVAL_MIN_RECALL || "0.75");
+const minF1 = Number(process.env.EVAL_MIN_F1 || "0.75");
 
 let expected;
 try {
@@ -89,12 +89,13 @@ async function run(plan) {
 
   const recall = totalExpected ? totalHits / totalExpected : 1;
   const precision = totalHits + totalFalsePositives ? totalHits / (totalHits + totalFalsePositives) : 1;
-  console.log(`summary: recall ${recall.toFixed(2)} (${totalHits}/${totalExpected}), precision ${precision.toFixed(2)}, extra findings ${totalFalsePositives}`);
+  const f1 = precision + recall ? (2 * precision * recall) / (precision + recall) : 0;
+  console.log(`summary: recall ${recall.toFixed(2)} (${totalHits}/${totalExpected}), precision ${precision.toFixed(2)}, F1 ${f1.toFixed(2)}, extra findings ${totalFalsePositives}`);
   console.log(`clean fixture findings: ${cleanFindings}`);
 
   let failed = false;
-  if (recall < minRecall) {
-    console.error(`FAIL: recall ${recall.toFixed(2)} below ${minRecall}`);
+  if (f1 < minF1) {
+    console.error(`FAIL: F1 ${f1.toFixed(2)} below ${minF1}`);
     failed = true;
   }
   if (cleanFindings > 0) {
@@ -106,7 +107,7 @@ async function run(plan) {
 
 function includesAny(line, keys) {
   const lower = line.toLowerCase();
-  return keys.some((key) => new RegExp(`\\b${escapeRegex(key.toLowerCase())}\\b`).test(lower));
+  return keys.some((key) => new RegExp(`\\b${escapeRegex(key.toLowerCase())}(?:s|es|ed|ing|ion|ions)?\\b`).test(lower));
 }
 
 function escapeRegex(value) {

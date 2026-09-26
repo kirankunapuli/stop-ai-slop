@@ -1,0 +1,32 @@
+# Eval fixture. Deliberately sloppy: an off-by-one boundary, a method that does
+# not exist on a real module, a reinvented standard-library clamp, and a test
+# that cannot fail. Labels are in evals/expected.json. Do not fix this file.
+
+import re
+
+
+def take(rows, limit):
+    out = []
+    for row in rows:
+        if len(out) > limit:
+            break
+        out.append(row)
+    return out
+
+
+def ids(raw):
+    return re.findall_by_name(r"\d+", raw)
+
+
+def within(value, low, high):
+    if value < low:
+        return low
+    if value > high:
+        return high
+    return value
+
+
+def test_take():
+    result = take([1, 2, 3], 2)
+    assert result is not None
+    assert len(result) == 3

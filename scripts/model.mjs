@@ -16,7 +16,7 @@ export const PROVIDERS = {
   custom: { kind: "openai", base: "" },
 };
 
-export async function callModel({ provider, baseUrl, apiKey, model, system, prompt, maxTokens = 2048 }) {
+export async function callModel({ provider, baseUrl, apiKey, model, system, prompt, maxTokens = 2048, temperature = 0 }) {
   const preset = PROVIDERS[provider] ?? PROVIDERS.custom;
   const base = baseUrl || preset.base;
   if (!base) throw new Error(`provider "${provider}" needs a base-url (known providers: ${Object.keys(PROVIDERS).join(", ")})`);
@@ -25,7 +25,7 @@ export async function callModel({ provider, baseUrl, apiKey, model, system, prom
     const res = await fetch(`${base}/v1/messages`, {
       method: "POST",
       headers: { "content-type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content: prompt }] }),
+      body: JSON.stringify({ model, max_tokens: maxTokens, temperature, system, messages: [{ role: "user", content: prompt }] }),
     });
     if (!res.ok) throw new Error(`anthropic ${res.status}: ${await res.text()}`);
     const data = await res.json();
@@ -35,7 +35,7 @@ export async function callModel({ provider, baseUrl, apiKey, model, system, prom
   const res = await fetch(`${base}/chat/completions`, {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ model, messages: [{ role: "system", content: system }, { role: "user", content: prompt }] }),
+    body: JSON.stringify({ model, temperature, messages: [{ role: "system", content: system }, { role: "user", content: prompt }] }),
   });
   if (!res.ok) throw new Error(`${provider} ${res.status}: ${await res.text()}`);
   const data = await res.json();

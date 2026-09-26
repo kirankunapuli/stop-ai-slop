@@ -244,17 +244,17 @@ The catalog follows Anthropic's [skill authoring guidance](https://platform.clau
 
 ## Evaluation
 
-A skill is a claim until it is measured. This repo ships a small benchmark: five labeled fixtures (three sloppy, two clean) and a harness that scores recall, precision, and false positives on the clean files.
+A skill is a claim until it is measured. This repo ships a small benchmark: six labeled fixtures (four sloppy, two clean) and a harness that scores recall, precision, F1, and false positives on the clean files.
 
 ```bash
 EVAL_API_KEY=... node evals/run.mjs
 ```
 
-| Model | Recall | Precision | Findings on clean |
-|---|---|---|---|
-| `claude-haiku-4-5-20251001` | 0.86 (12/14) | 0.92 | 0 |
+| Model | Recall | Precision | F1 | Findings on clean |
+|---|---|---|---|---|
+| `claude-haiku-4-5-20251001` | 0.89 (17/19) | 1.00 | 0.94 | 0 |
 
-The action runs twice: a first pass finds defects, a second pass removes questions, guesses, and boundary-validation complaints. The eval runs the same two passes, from the same prompt file, so the number describes what the action actually sends.
+The action runs twice: a first pass finds defects, a second pass removes questions, guesses, and boundary-validation complaints. The eval imports the same prompt file, so the number describes what the action sends. Temperature is 0.
 
 `gpt-6-luna` is the default. Its last measurement, on the earlier three-fixture set, was 1.00 recall and 0.91 precision.
 

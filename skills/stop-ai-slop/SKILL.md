@@ -29,19 +29,15 @@ Report only when asked, or in CI. If the user says "detect only", "just review",
 path/to/file.py:42: <problem>. <fix>.
 ```
 
-## Code slop
+**Scope decides which rules apply.** A patch shows group 1. Groups 2 and 3 need more than a patch. Do not report a group 2 or group 3 item from a diff alone.
 
-### Wrong or unverified behavior
+## 1. Defects visible in a diff
 
-Highest severity. Read these before style.
+Judge these from the changed lines and their surroundings.
 
 **Plausible but wrong logic.** Off-by-one errors, inverted conditions, wrong boundary (`>=` where `>` belongs), missing edge cases, handlers that look finished and return the wrong result. Fix: trace the actual inputs and boundaries. Run it. Compare against the requirement, not against what the code does.
 
-**Hallucinated APIs and packages.** Methods, options, or parameters absent from the installed version. Imports from packages not in the manifest. Package names that look plausible but are wrong. USENIX Security 2025 found 19.7% of 2.23 million AI samples referenced a nonexistent package, and 43% of invented names recurred across runs: conflations (38%), near-miss typos (13%), pure inventions (51%). Fix: open the installed source and check the exact version. Confirm every dependency exists. If you cannot verify it, say so.
-
 **Swallowed errors and silent fallbacks.** `try/except` that returns `None`, `{}`, or a default. Log-and-rethrow. Error strings that restate the exception. Fix: let errors propagate, or translate once at the boundary into a message that names what failed and what to do.
-
-**Missing or weak trust-boundary checks.** No authorization on a new endpoint, validation only on the client, input trusted because it came from another internal service. Fix: validate and authorize once, at the boundary. Never remove these while de-slopping.
 
 **Injection through string building.** SQL assembled with f-strings or concatenation, shell commands run with `shell=True`, file paths joined from user input. The plausible version works on the happy path and executes whatever the input says. Fix: parameterized queries, argument arrays instead of a shell string, resolved real paths that stay inside the allowed root.
 
@@ -53,29 +49,11 @@ Highest severity. Read these before style.
 
 **Unguarded network behavior.** Retries that ignore `Retry-After` or run forever, hardcoded timeouts that miss the service SLA, calls with no timeout, missing rate-limit handling. Fix: bounded retries with backoff, a timeout, and explicit handling of the failure response.
 
-**Non-idempotent retries and race conditions.** A retry that charges the card twice, a job that runs concurrently with itself, state read then written without a guard. Fix: make it idempotent, use an idempotency key, or take a lock. Check what happens when the same call runs twice.
-
-**N+1 queries and unbounded result sets.** A loop querying once per item. A list endpoint with no pagination. A query that loads the whole table. Fix: eager-load, batch, add a limit, or stream. Test with a realistic row count.
-
-### Structure that does not pay for itself
-
 **Speculative abstraction.** An interface or abstract base with one implementation. A factory that builds one product. Config that never varies. A layer that only forwards calls. Fix: inline it and call the concrete thing. Add the seam when a second caller appears.
-
-**Reinvented wheels.** A hand-rolled clone, parser, formatter, debounce, or UUID check. A new dependency for what the standard library or an installed package does. A helper that already exists a few files over. Fix: standard library, then native feature, then installed dependency, then an existing local helper. New code last.
-
-**God functions and shotgun diffs.** One function that parses, validates, transforms, persists, and logs. A trivial change requiring edits in five files. A long `if/elif` ladder where every branch does the same shape of work. Fix: extract along real seams, or replace the ladder with a lookup table.
-
-**Architecture and layer boundaries.** Data access in a view, a domain rule in the transport layer. The code works and ignores how this codebase is organized. Fix: move it to the layer that owns the responsibility, or match how neighboring code does it.
-
-### Naming and comments
 
 **Generic naming.** `data`, `result`, `value`, `temp`, `output`, `info`, `obj`, `item`, `handle`, `process`, `manage`. Names that describe the type instead of the role. Fix: name the role and the unit. `pending_invoices`, not `data`.
 
 **Redundant comments.** `// increment counter` above `counter++`. A docstring that restates the signature. `# ===== Imports =====` banners. Step comments narrating readable code. Fix: delete. Keep a comment only for a non-obvious why: a workaround, a spec quirk, a footgun, a link.
-
-**Stale comments and docs.** A comment or doc that describes what the code used to do. Fix: update or delete. Wrong documentation is worse than none.
-
-### Excess and noise
 
 **Defensive bloat.** Null checks on values that cannot be null. Validation repeated at every internal layer. Fallbacks for states the type system rules out. `if not x: return` guards copied everywhere. Fix: validate once at the boundary. Let programming errors crash loudly.
 
@@ -85,13 +63,31 @@ Runtime checks on data that crosses a trust boundary are not bloat: file content
 
 **Formatting noise.** Reformatting untouched code. Emoji in code, comments, or logs. Style that disagrees with the file. Blank-line padding no tool enforces. Fix: match the file, keep the diff reviewable.
 
-### Tests
-
 **Test slop.** No assertion, or only that a call did not throw. Assertions on a mock instead of behavior. Tautologies. Tests that mirror the implementation including its bugs, because they were written from the code rather than the requirement. Copy-pasted bodies. Fix: assert the required behavior at the edges. One assertion that would fail if the logic broke.
 
-## Agent behavior
+**Reinvented wheels.** A hand-rolled clone, parser, formatter, debounce, clamp, or UUID check. A new dependency for what the standard library or an installed package does. Fix: standard library, then native feature, then installed dependency. When you can read the repository, also check for a helper that already exists a few files over.
 
-Slop in the agent's own work. Most damaging, because it makes the rest of the review unreliable.
+## 2. Defects that need the repository
+
+A patch cannot show these. Use them when you can read the repository, the manifest, and the callers. From a diff alone, stay silent.
+
+**Hallucinated APIs and packages.** Methods, options, or parameters absent from the installed version. Imports from packages not in the manifest. Package names that look plausible but are wrong. USENIX Security 2025 found 19.7% of 2.23 million AI samples referenced a nonexistent package, and 43% of invented names recurred across runs: conflations (38%), near-miss typos (13%), pure inventions (51%). Fix: open the installed source and check the exact version. Confirm every dependency exists. If you cannot verify it, say so.
+
+**Missing or weak trust-boundary checks.** No authorization on a new endpoint, validation only on the client, input trusted because it came from another internal service. Fix: validate and authorize once, at the boundary. Never remove these while de-slopping.
+
+**Non-idempotent retries and race conditions.** A retry that charges the card twice, a job that runs concurrently with itself, state read then written without a guard. Fix: make it idempotent, use an idempotency key, or take a lock. Check what happens when the same call runs twice.
+
+**N+1 queries and unbounded result sets.** A loop querying once per item. A list endpoint with no pagination. A query that loads the whole table. Fix: eager-load, batch, add a limit, or stream. Test with a realistic row count.
+
+**God functions and shotgun diffs.** One function that parses, validates, transforms, persists, and logs. A trivial change requiring edits in five files. A long `if/elif` ladder where every branch does the same shape of work. Fix: extract along real seams, or replace the ladder with a lookup table.
+
+**Architecture and layer boundaries.** Data access in a view, a domain rule in the transport layer. The code works and ignores how this codebase is organized. Fix: move it to the layer that owns the responsibility, or match how neighboring code does it.
+
+**Stale comments and docs.** A comment or doc that describes what the code used to do. Fix: update or delete. Wrong documentation is worse than none. Needs the history to detect.
+
+## 3. Agent behavior
+
+Not code findings. Rules for the agent doing the work, applied to your own output before you hand it over.
 
 **Task boundary violations.** Editing files outside the task, deleting code nobody asked to remove, reformatting unrelated modules. Fix: every changed file must serve the request. Flag anything else and revert it.
 
@@ -131,6 +127,7 @@ Keep a banned word when it is the project's convention. Match, do not impose.
 ## Quick checks before delivering
 
 - Did you ask whether it needs to exist at all?
+- Reviewing a patch only? Then report group 1 items only.
 - Any line deletable with no observable change? Delete it.
 - Any name that fails the portability test? Rename to the role.
 - Any comment restating the code or describing old behavior? Delete or update.
@@ -172,6 +169,7 @@ Report only: findings, one line each, ordered by severity. For prose, quote the 
 - Never change a test to make it pass. Change code, or state that the requirement changed.
 - Never edit files outside the task.
 - Never claim a result you did not verify. Quote the real output.
+- Never report a group 2 or group 3 item from a patch alone.
 - Never simplify away input validation at trust boundaries, error handling that prevents data loss, security, accessibility, or concurrency correctness.
 - Never add an abstraction, dependency, or config knob in the same pass that removes slop.
 - Never invent claims, sources, numbers, or opinions when editing prose.

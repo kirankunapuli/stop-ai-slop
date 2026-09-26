@@ -1,0 +1,12 @@
+from decimal import Decimal
+from typing import TypedDict
+
+
+class Order(TypedDict):
+    id: str
+    amount: str
+
+
+def parse_amounts(orders: list[Order]) -> dict[str, Decimal]:
+    # Amounts are validated where the order is created.
+    return {order["id"]: Decimal(order["amount"]) for order in orders}

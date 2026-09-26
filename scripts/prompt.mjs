@@ -9,6 +9,8 @@ export function buildDetectPrompt({ diff, title = "", body = "" }) {
 
   return [
     "Review the pull request diff below. Detect only. Do not rewrite or apply fixes.",
+    "Report only defects visible in this patch.",
+    "Rules that need the whole repository, and rules about the writer's process, do not apply here. Skip them.",
     "Report only defects you can point at in the diff and defend from the code shown.",
     "One line each, ordered by severity, at most 5: `path:line: problem. fix.`",
     "No questions. No `verify` or `confirm` speculation. No style opinions, no type-guard nitpicks, no request for a comment or an assert.",
@@ -36,8 +38,9 @@ export function buildVerifyPrompt({ diff, findings }) {
     "You are filtering a list of candidate findings. Remove a finding only when it is one of these:",
     "1. A question, or a request to verify or confirm something the input does not show.",
     "2. A guess about code that is not present in the input.",
-    "3. A complaint about a runtime check on data crossing a trust boundary: file, network, JSON.parse, environment, CLI arguments, request body.",
+    "3. A complaint that code validates input at a trust boundary, such as type guards around a parsed file or request. Only that. Security findings are not this and must be kept: SQL injection, command injection, float money, naive datetimes, secrets, missing timeouts.",
     "Keep every other finding unchanged, with the same wording, one line each, ordered by severity.",
+    "Findings about comments, naming, dead code, and prose are valid. Keep them.",
     "If none survive, reply with exactly: NO_SLOP",
     "",
     "CANDIDATE FINDINGS:",

@@ -1,5 +1,5 @@
 {
-  "code/invoice.py": [
+  "code/invoice.py.txt": [
     { "pattern": "speculative abstraction", "match": ["interface", "abstract", "factory"] },
     { "pattern": "redundant comments", "match": ["comment", "docstring", "restating", "restates", "banner"] },
     { "pattern": "swallowed errors", "match": ["except", "swallow", "amount to 0", "return none", "propagate"] },
@@ -7,18 +7,25 @@
     { "pattern": "dead code", "match": ["unused", "dead", "import"] },
     { "pattern": "unverified network call", "match": ["requests", "timeout", "network", "unverified"] }
   ],
-  "code/parse.py": [
+  "code/parse.py.txt": [
     { "pattern": "money as float", "match": ["float", "decimal", "money", "precision"] },
     { "pattern": "sql injection", "match": ["sql", "f-string", "interpolat", "parameter", "injection"] },
     { "pattern": "command injection", "match": ["shell", "subprocess", "injection", "command"] },
     { "pattern": "naive datetime", "match": ["timezone", "naive", "utc", "datetime"] }
   ],
+  "code/mixed.py.txt": [
+    { "pattern": "plausible but wrong logic", "match": ["off-by-one", "boundary", "limit", "inverted", "wrong", "breaks"] },
+    { "pattern": "hallucinated API", "match": ["findall_by_name", "does not exist", "no such", "hallucinated", "attribute", "method"] },
+    { "pattern": "reinvented wheels", "match": ["reinvent", "standard library", "stdlib", "built-in", "clamp", "min", "max"] },
+    { "pattern": "test slop", "match": ["cannot fail", "assert", "tautolog", "mirrors", "no assertion"] }
+  ],
   "prose/commit-msg.txt": [
     { "pattern": "past-tense subject", "match": ["past tense", "imperative", "fixed", "subject"] },
     { "pattern": "filler and buzzwords", "match": ["filler", "robust", "important", "going forward", "filler phrase"] },
     { "pattern": "tool footer", "match": ["generated with", "footer", "attribution", "tool"] },
-    { "pattern": "narration", "match": ["narrat", "refactor", "maintainable"] }
+    { "pattern": "narration", "match": ["narrat", "refactor", "maintainable"] },
+    { "pattern": "vague or hedged wording", "match": ["vague", "hedg", "could cause", "state the", "name the specific", "no information"] }
   ],
-  "clean/format.py": [],
-  "refactor/guards.ts": []
+  "clean/format.py.txt": [],
+  "refactor/guards.ts.txt": []
 }
