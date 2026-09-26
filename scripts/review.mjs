@@ -32,7 +32,12 @@ function setOutput(name, value) {
 }
 
 function getDiff(maxChars) {
-  const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, "utf8"));
+  let event;
+  try {
+    event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, "utf8"));
+  } catch (error) {
+    fail(`could not read the GitHub event at ${process.env.GITHUB_EVENT_PATH}: ${error.message}`);
+  }
   const ZERO = "0".repeat(40);
 
   if (event.pull_request) {
@@ -65,9 +70,10 @@ async function review(providerName, baseUrlOverride, apiKey, model, diff) {
   const skill = readFileSync(process.env.SKILL_PATH, "utf8");
   const prompt = [
     "Review the pull request diff below. Detect only. Do not rewrite or apply fixes.",
-    "Report findings as one line each, ordered by severity: `path:line: problem. fix.`",
-    "For prose (commit or PR text) quote the phrase instead of a line number.",
-    "If there is no slop, reply with exactly: NO_SLOP",
+    "Report only defects you can point at in the diff and defend from the code shown.",
+    "One line each, ordered by severity, at most 5: `path:line: problem. fix.`",
+    "No questions. No `verify` or `confirm` speculation. No style opinions, no type-guard nitpicks, no request for a comment or an assert.",
+    "If the diff has no concrete defect, reply with exactly: NO_SLOP",
     "",
     "DIFF:",
     diff,

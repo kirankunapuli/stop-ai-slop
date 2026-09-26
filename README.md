@@ -258,6 +258,8 @@ EVAL_API_KEY=... node evals/run.mjs
 
 The harness fails when recall drops below the threshold or when the skill invents a finding on clean code. That second check matters most: a skill that invents problems is worse than one that misses a few. Method, limitations, and how to add a fixture: [evals/README.md](evals/README.md).
 
+Measured on code it did not influence: [docs/case-study.md](docs/case-study.md) runs the skill over three real agent-authored pull requests and publishes the wrong findings as well as the right ones.
+
 ## Repository layout
 
 ```text
@@ -279,6 +281,7 @@ The harness fails when recall drops below the threshold or when the skill invent
 ├── examples/pr-review.yml    # consumer workflow example
 ├── demo/                     # VHS recording, sample file, one-command rebuild
 ├── docs/agents.md            # all 79 supported agents
+├── docs/case-study.md        # the skill measured on three real agent PRs
 ├── .claude-plugin/           # Claude Code plugin manifests
 ├── .markdownlint.json        # markdown lint config
 └── .github/workflows/        # validate.yml

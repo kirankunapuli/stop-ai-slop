@@ -79,6 +79,8 @@ Highest severity. Read these before style.
 
 **Defensive bloat.** Null checks on values that cannot be null. Validation repeated at every internal layer. Fallbacks for states the type system rules out. `if not x: return` guards copied everywhere. Fix: validate once at the boundary. Let programming errors crash loudly.
 
+Runtime checks on data that crosses a trust boundary are not bloat: file contents, network responses, `JSON.parse` output, environment variables, CLI arguments, request bodies, form input. Keep them, and do not report them.
+
 **Dead weight.** Commented-out code, `TODO` graveyards, unused imports, params, and helpers, compatibility shims for callers that do not exist, feature flags stuck on. Fix: delete. Version control remembers it.
 
 **Formatting noise.** Reformatting untouched code. Emoji in code, comments, or logs. Style that disagrees with the file. Blank-line padding no tool enforces. Fix: match the file, keep the diff reviewable.
@@ -174,6 +176,8 @@ Report only: findings, one line each, ordered by severity. For prose, quote the 
 - Never add an abstraction, dependency, or config knob in the same pass that removes slop.
 - Never invent claims, sources, numbers, or opinions when editing prose.
 - If you cannot verify a finding, ask. Do not fabricate it.
+- Report findings as statements. Never output "verify X" or "confirm Y" speculation. If the diff does not show enough to decide, say so in one line, or omit the finding.
+- In a refactor, rename, or type-only diff, prefer no finding over a speculative one.
 - No praise and no restating what the code does. Findings only.
 
 ## References
